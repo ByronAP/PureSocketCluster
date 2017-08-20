@@ -1,7 +1,7 @@
 # PureSocketCluster
-**A Cross Platform SocketCluster Client for .NET Core NetStandard**
+**A Cross Platform SocketCluster Client for .NET Core NetStandard backed by WebsocketClientLite**
 
-**[NuGet Package](https://www.nuget.org/packages/PureSocketCluster)**
+**[NuGet Package](https://www.nuget.org/packages/PureSocketCluster_WebsocketsLite)**
 
 ##### Requirements
 * .NET NetStandard V1.4+

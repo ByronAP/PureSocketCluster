@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net.WebSockets;
 using PureSocketCluster;
 using PureWebSockets;
 
@@ -19,8 +18,7 @@ namespace PureSocketClusterTest
             };
 
             // initialize the client
-            _scc = new PureSocketClusterSocket("wss://yoursocketclusterserver.com/socketcluster/",
-                new ReconnectStrategy(4000, 60000), creds);
+            _scc = new PureSocketClusterSocket("wss://sc-02.coinigy.com/socketcluster/", new ReconnectStrategy(4000, 60000), creds);
 
             // hook up to some events
             _scc.OnOpened += Scc_OnOpened;
@@ -31,7 +29,7 @@ namespace PureSocketClusterTest
             _scc.OnClosed += _scc_OnClosed;
             _scc.OnData += _scc_OnData;
             _scc.OnFatality += _scc_OnFatality;
-            _scc.Connect();
+            var res = _scc.ConnectAsync().Result;
 
             // subscribe to some channels
             var cn = _scc.CreateChannel("TRADE-PLNX--BTC--ETC").Subscribe();
@@ -60,10 +58,10 @@ namespace PureSocketClusterTest
             Console.WriteLine("");
         }
 
-        private static void _scc_OnClosed(WebSocketCloseStatus reason)
+        private static void _scc_OnClosed()
         {
             Console.ForegroundColor = ConsoleColor.DarkRed;
-            Console.WriteLine($"Socket Closed: {reason}");
+            Console.WriteLine($"Socket Closed");
             Console.ResetColor();
             Console.WriteLine("");
         }
@@ -84,10 +82,10 @@ namespace PureSocketClusterTest
             Console.WriteLine("");
         }
 
-        private static void _scc_OnStateChanged(WebSocketState newState, WebSocketState prevState)
+        private static void _scc_OnStateChanged(bool connected)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"State changed from {prevState} to {newState}");
+            Console.WriteLine($"Connection state changed to {connected}");
             Console.ResetColor();
             Console.WriteLine("");
         }

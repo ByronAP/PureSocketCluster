@@ -12,8 +12,9 @@
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\PureSocketCluster\PureSocketCluster.csproj" />
+    <ProjectReference Include="..\PureSocketCluster\PureSocketCluster_WebsocketsLite.csproj" />
   </ItemGroup>
 
 </Project>

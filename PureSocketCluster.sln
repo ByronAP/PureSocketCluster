@@ -1,11 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+VisualStudioVersion = 15.0.26730.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2F8BD1E5-A759-43EE-8767-3E1B571C9940}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PureSocketCluster", "src\PureSocketCluster\PureSocketCluster.csproj", "{F605D3BF-FB1E-4CC5-93B1-2B175C2A5401}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PureSocketCluster_WebsocketsLite", "src\PureSocketCluster\PureSocketCluster_WebsocketsLite.csproj", "{F605D3BF-FB1E-4CC5-93B1-2B175C2A5401}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PureSocketClusterTest", "src\PureSocketClusterTest\PureSocketClusterTest.csproj", "{8D44DC14-CB1D-42E3-8AF9-3AF670BD0DD4}"
 EndProject
@@ -26,5 +29,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A30FCDD7-5799-4357-B034-C4EF89A40EC4}
 	EndGlobalSection
 EndGlobal

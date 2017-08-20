@@ -1,13 +1,11 @@
 ﻿/*
  * Author: ByronP
- * Date: 1/15/2017
+ * Date: 8/19/2017
  * Coinigy Inc. Coinigy.com
  */
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.WebSockets;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -42,7 +40,7 @@ namespace PureSocketCluster
         public event SendFailed OnSendFailed;
         public event StateChanged OnStateChanged;
 
-        public WebSocketState SocketState => _socket.State;
+        public bool IsConnected => _socket.IsConnected;
         public int SocketSendQueueLength => _socket?.SendQueueLength ?? 0;
         public int SocketSendQueueMaxLength
         {
@@ -75,10 +73,10 @@ namespace PureSocketCluster
             set => _socket.DisconnectWait = value;
         }
 
-        public PureSocketClusterSocket(string url, Tuple<string, string> requestHeader = null, int maxSendQueueLength = 1000)
+        public PureSocketClusterSocket(string url, Dictionary<string, string> requestHeader = null, int maxSendQueueLength = 1000, bool ignoreCertErrors = false)
         {
             Log("Creating new instance.");
-            _socket = new PureWebSocket(url, requestHeader, maxSendQueueLength);
+            _socket = new PureWebSocket(url, requestHeader, maxSendQueueLength, ignoreCertErrors:ignoreCertErrors);
             _counter = 0;
             Channels = new List<Channel>();
             _acks = new Dictionary<long?, object[]>();
@@ -86,11 +84,11 @@ namespace PureSocketCluster
             SetupEvents();
         }
 
-        public PureSocketClusterSocket(string url, string authToken, Tuple<string, string> requestHeader = null, int maxSendQueueLength = 1000)
+        public PureSocketClusterSocket(string url, string authToken, Dictionary<string, string> requestHeader = null, int maxSendQueueLength = 1000, bool ignoreCertErrors = false)
         {
             Log("Creating new instance.");
             _authToken = authToken;
-            _socket = new PureWebSocket(url, requestHeader, maxSendQueueLength);
+            _socket = new PureWebSocket(url, requestHeader, maxSendQueueLength, ignoreCertErrors: ignoreCertErrors);
             _counter = 0;
             Channels = new List<Channel>();
             _acks = new Dictionary<long?, object[]>();
@@ -98,11 +96,11 @@ namespace PureSocketCluster
             SetupEvents();
         }
 
-        public PureSocketClusterSocket(string url, Creds creds, Tuple<string, string> requestHeader = null, int maxSendQueueLength = 1000)
+        public PureSocketClusterSocket(string url, Creds creds, Dictionary<string, string> requestHeader = null, int maxSendQueueLength = 1000, bool ignoreCertErrors = false)
         {
             Log("Creating new instance.");
             _creds = creds;
-            _socket = new PureWebSocket(url, requestHeader, maxSendQueueLength);
+            _socket = new PureWebSocket(url, requestHeader, maxSendQueueLength, ignoreCertErrors: ignoreCertErrors);
             _counter = 0;
             Channels = new List<Channel>();
             _acks = new Dictionary<long?, object[]>();
@@ -110,10 +108,10 @@ namespace PureSocketCluster
             SetupEvents();
         }
 
-        public PureSocketClusterSocket(string url, ReconnectStrategy reconnectStrategy, Tuple<string, string> requestHeader = null, int maxSendQueueLength = 1000)
+        public PureSocketClusterSocket(string url, ReconnectStrategy reconnectStrategy, Dictionary<string, string> requestHeader = null, int maxSendQueueLength = 1000, bool ignoreCertErrors = false)
         {
             Log("Creating new instance.");
-            _socket = new PureWebSocket(url, reconnectStrategy, requestHeader, maxSendQueueLength);
+            _socket = new PureWebSocket(url, reconnectStrategy, requestHeader, maxSendQueueLength, ignoreCertErrors: ignoreCertErrors);
             _counter = 0;
             Channels = new List<Channel>();
             _acks = new Dictionary<long?, object[]>();
@@ -121,11 +119,11 @@ namespace PureSocketCluster
             SetupEvents();
         }
 
-        public PureSocketClusterSocket(string url, ReconnectStrategy reconnectStrategy, string authToken, Tuple<string, string> requestHeader = null, int maxSendQueueLength = 1000)
+        public PureSocketClusterSocket(string url, ReconnectStrategy reconnectStrategy, string authToken, Dictionary<string, string> requestHeader = null, int maxSendQueueLength = 1000, bool ignoreCertErrors = false)
         {
             Log("Creating new instance.");
             _authToken = authToken;
-            _socket = new PureWebSocket(url, reconnectStrategy, requestHeader, maxSendQueueLength);
+            _socket = new PureWebSocket(url, reconnectStrategy, requestHeader, maxSendQueueLength, ignoreCertErrors: ignoreCertErrors);
             _counter = 0;
             Channels = new List<Channel>();
             _acks = new Dictionary<long?, object[]>();
@@ -133,11 +131,11 @@ namespace PureSocketCluster
             SetupEvents();
         }
 
-        public PureSocketClusterSocket(string url, ReconnectStrategy reconnectStrategy, Creds creds, Tuple<string, string> requestHeader = null, int maxSendQueueLength = 1000)
+        public PureSocketClusterSocket(string url, ReconnectStrategy reconnectStrategy, Creds creds, Dictionary<string, string> requestHeader = null, int maxSendQueueLength = 1000, bool ignoreCertErrors = false)
         {
             Log("Creating new instance.");
             _creds = creds;
-            _socket = new PureWebSocket(url, reconnectStrategy, requestHeader, maxSendQueueLength);
+            _socket = new PureWebSocket(url, reconnectStrategy, requestHeader, maxSendQueueLength, ignoreCertErrors: ignoreCertErrors);
             _counter = 0;
             Channels = new List<Channel>();
             _acks = new Dictionary<long?, object[]>();
@@ -152,16 +150,15 @@ namespace PureSocketCluster
             _socket.OnError += socket_OnError;
             _socket.OnClosed += socket_OnClosed;
             _socket.OnMessage += socket_OnMessage;
-            _socket.OnData += socket_OnData;
             _socket.OnFatality += socket_OnFatality;
             _socket.OnSendFailed += socket_OnSendFailed;
             _socket.OnStateChanged += socket_OnStateChanged;
         }
 
-        private void socket_OnStateChanged(WebSocketState newState, WebSocketState prevState)
+        private void socket_OnStateChanged(bool connected)
         {
-            Log($"State changed fomr {prevState} to {newState}.");
-            OnStateChanged?.Invoke(newState, prevState);
+            Log($"Connection state changed to {connected}.");
+            OnStateChanged?.Invoke(connected);
         }
 
         private void socket_OnSendFailed(string data, Exception ex)
@@ -265,10 +262,10 @@ namespace PureSocketCluster
             }
         }
 
-        private void socket_OnClosed(WebSocketCloseStatus reason)
+        private void socket_OnClosed()
         {
             Log("OnClosed invoked.");
-            OnClosed?.Invoke(reason);
+            OnClosed?.Invoke();
         }
 
         private void socket_OnError(Exception ex)
@@ -299,12 +296,6 @@ namespace PureSocketCluster
 
             OnOpened?.Invoke();
         }
-
-        // TODO: invalid ssl bypass
-        //public void SetSslCertVerification(bool value)
-        //{
-        //    //_socket.AllowUnstrustedCertificate = value;
-        //}
 
         public Channel CreateChannel(string name)
         {
@@ -344,12 +335,12 @@ namespace PureSocketCluster
             _authToken = token;
         }
 
-        public bool Connect()
+        public async Task<bool> ConnectAsync()
         {
             Log("Connect invoked.");
             try
             {
-                return _socket.Connect();
+                return await _socket.ConnectAsync();
             }
             catch (Exception ex)
             {
